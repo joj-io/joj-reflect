@@ -1,5 +1,6 @@
 package io.joj.annotation;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static io.joj.annotation.GuavaCollectors.toImmutableMap;
 import static java.lang.String.format;
@@ -12,14 +13,18 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+import com.google.common.primitives.Primitives;
 
 /**
  * {@link InvocationHandler} implementing an {@link Annotation}.
@@ -57,8 +62,6 @@ final class SyntheticAnnotationInvocationHandler<A extends Annotation> implement
 		// Implicit null-checking. Annotation can never have null values.
 		Map<String, Object> providedValues = ImmutableMap.copyOf(requireNonNull(values, "values"));
 
-		// values = ImmutableMap.copyOf(requireNonNull(values, "values"));
-
 		this.values =
 				// Take all annotation interface methods
 				Arrays.stream(annotationClass.getDeclaredMethods())
@@ -83,13 +86,18 @@ final class SyntheticAnnotationInvocationHandler<A extends Annotation> implement
 												format("No value provided for %s", entry.getKey().getName())))
 						/**/ ))
 
-						// Validate types and extract method names
+						// Validate types
 						.map(entry -> entry(entry.getKey(),
-								entry.getKey().getReturnType().cast(entry.getValue())))
+								Primitives.wrap(entry.getKey().getReturnType()).cast(entry.getValue())))
 
 						.collect(toImmutableMap(
 								entry -> entry.getKey().getName(),
 								Entry::getValue));
+
+		// Finally, check all provided values did not contain too many (i.e. unmapped) entries
+		List<String> unmapped = new ArrayList<>(Sets.difference(providedValues.keySet(), this.values.keySet()));
+		checkArgument(unmapped.isEmpty(), "Some provided values do not have corresponding method in %s: %s",
+				annotationClass, unmapped);
 	}
 
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -161,6 +169,9 @@ final class SyntheticAnnotationInvocationHandler<A extends Annotation> implement
 		if (!annotationClass.isInstance(other)) {
 			return false;
 		}
+		
+		// TODO
+		throw new UnsupportedOperationException("not implemented yet");
 	}
 
 	private String toStringImpl() {

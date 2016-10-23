@@ -50,7 +50,7 @@ public class SyntheticAnnotationInvocationHandlerTest {
 	}
 
 	@Test
-	public void testAnnotationType() throws Throwable {
+	public void testAnnotationType() {
 		// When
 		InvocationHandler ih = handlerFor(TestAnnotationWithoutAttribtues.class);
 		Class<? extends Annotation> introspectedAnnotationType = proxy(Annotation.class, ih).annotationType();
@@ -59,7 +59,7 @@ public class SyntheticAnnotationInvocationHandlerTest {
 	}
 
 	@Test
-	public void testToStringNoAttributes() throws Throwable {
+	public void testToStringNoAttributes() {
 		// When
 		String value = proxyWithHandlerFor(TestAnnotationWithoutAttribtues.class, emptyMap())
 				.toString();
@@ -69,7 +69,7 @@ public class SyntheticAnnotationInvocationHandlerTest {
 	}
 
 	@Test
-	public void testToString() throws Throwable {
+	public void testToString() {
 		// When
 		InvocationHandler ih = new SyntheticAnnotationInvocationHandler<>(
 				TestAnnotationWith2DefaultsAnd1Mandatory.class,
@@ -88,7 +88,7 @@ public class SyntheticAnnotationInvocationHandlerTest {
 	}
 
 	@Test
-	public void testReturnDefaultValue() throws Throwable {
+	public void testReturnDefaultValue() {
 		// When
 		String value = proxyWithHandlerFor(TestAnnotationWithDefault.class, emptyMap()).foo();
 		// Then
@@ -96,7 +96,7 @@ public class SyntheticAnnotationInvocationHandlerTest {
 	}
 
 	@Test
-	public void testReturnProvidedValue() throws Throwable {
+	public void testReturnProvidedValue() {
 		// When
 		String value = proxyWithHandlerFor(TestAnnotationWithMandatory.class,
 				singletonMap("mandatoryMethod", "provided test value"))
@@ -106,7 +106,7 @@ public class SyntheticAnnotationInvocationHandlerTest {
 	}
 
 	@Test
-	public void testReturnProvidedValueWhenDefault() throws Throwable {
+	public void testReturnProvidedValueWhenDefault() {
 		// When
 		String value = proxyWithHandlerFor(TestAnnotationWithDefault.class,
 				singletonMap("foo", "provided test value for foo"))
@@ -116,7 +116,7 @@ public class SyntheticAnnotationInvocationHandlerTest {
 	}
 
 	@Test
-	public void testHashCode() throws Throwable {
+	public void testHashCode() {
 		// When
 		int value = proxyWithHandlerFor(TestAnnotationWith2DefaultsAnd1Mandatory.class, ImmutableMap.of(
 				"second", "second val",
@@ -129,6 +129,14 @@ public class SyntheticAnnotationInvocationHandlerTest {
 
 		assertEquals(value, Sample.class.getAnnotation(TestAnnotationWith2DefaultsAnd1Mandatory.class).hashCode());
 
+	}
+
+	@Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = ""
+			+ ".*no.* corresponding method in interface \\S*TestAnnotationWithDefault: \\[extramethod\\]")
+	public void testRejectUnmappedValue() {
+		// When
+		new SyntheticAnnotationInvocationHandler<>(TestAnnotationWithDefault.class, singletonMap("extramethod", ""));
+		// Then expect exception
 	}
 
 	private <A extends Annotation> SyntheticAnnotationInvocationHandler<A> handlerFor(Class<A> annotationClass) {
@@ -149,17 +157,4 @@ public class SyntheticAnnotationInvocationHandlerTest {
 	private <A extends Annotation> A proxyWithHandlerFor(Class<A> annotationClass, Map<String, ?> values) {
 		return proxy(annotationClass, new SyntheticAnnotationInvocationHandler<>(annotationClass, values));
 	}
-
-	// private static SyntheticAnnotationInvocationHandler<TestAnnotation> handlerForEmptyTestAnnotation() {
-	// return new SyntheticAnnotationInvocationHandler<>(TestAnnotation.class, emptyMap());
-	// }
-
-	private static Method annotationTypeMethod() throws NoSuchMethodException {
-		return Annotation.class.getMethod("annotationType");
-	}
-
-	private static Method toStringMethod() throws NoSuchMethodException {
-		return Object.class.getMethod("toString");
-	}
-
 }
