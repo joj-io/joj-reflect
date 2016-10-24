@@ -1,4 +1,4 @@
-package io.joj.annotation;
+package io.joj.reflect.internal;
 
 import java.util.function.Function;
 import java.util.stream.Collector;
@@ -10,7 +10,7 @@ import com.google.common.collect.ImmutableMap;
  * @author findepi
  * @since Oct 23, 2016
  */
-class GuavaCollectors {
+public class GuavaCollectors {
 	private GuavaCollectors() {
 	}
 

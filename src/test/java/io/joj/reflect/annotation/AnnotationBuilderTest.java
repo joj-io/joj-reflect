@@ -1,4 +1,4 @@
-package io.joj.annotation;
+package io.joj.reflect.annotation;
 
 import static org.testng.Assert.assertEquals;
 
@@ -6,6 +6,8 @@ import org.assertj.core.api.Assertions;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableMap;
+
+import io.joj.reflect.annotation.AnnotationBuilder;
 
 /**
  * @author findepi

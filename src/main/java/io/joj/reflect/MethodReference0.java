@@ -1,4 +1,4 @@
-package io.joj.annotation;
+package io.joj.reflect;
 
 /**
  * A {@link FunctionalInterface} that should be always implemented with a method reference.
@@ -7,6 +7,6 @@ package io.joj.annotation;
  * @since Oct 23, 2016
  */
 @FunctionalInterface
-public interface MethodReference<T, R> {
-	R invoke(T argument);
+public interface MethodReference0<Self> {
+	void invokeOn(Self receiver);
 }

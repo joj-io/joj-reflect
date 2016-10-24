@@ -1,4 +1,4 @@
-package io.joj.annotation;
+package io.joj.reflect.annotation;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyMap;
@@ -16,6 +16,8 @@ import java.util.Map;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableMap;
+
+import io.joj.reflect.annotation.SyntheticAnnotationInvocationHandler;
 
 /**
  * @author findepi

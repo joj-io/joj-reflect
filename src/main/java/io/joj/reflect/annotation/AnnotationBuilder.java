@@ -1,4 +1,4 @@
-package io.joj.annotation;
+package io.joj.reflect.annotation;
 
 import static java.util.Objects.requireNonNull;
 
@@ -9,6 +9,9 @@ import java.util.Map;
 import org.pcollections.HashPMap;
 import org.pcollections.IntTreePMap;
 import org.pcollections.PMap;
+
+import io.joj.reflect.MethodReference0;
+import io.joj.reflect.MethodReferences;
 
 /**
  * Main entry point for building synthetic {@link Annotation} instances.
@@ -58,7 +61,7 @@ public class AnnotationBuilder {
 			this.values = requireNonNull(values, "values");
 		}
 
-		public <R> OngoingMethodSpec<R> with(MethodReference<A, R> methodReference) {
+		public <R> OngoingMethodSpec<R> with(MethodReference0<A> methodReference) {
 			String specedMethodName = MethodReferences.getMethod(clazz, methodReference).getName();
 			return new OngoingMethodSpec<>(specedMethodName);
 		}

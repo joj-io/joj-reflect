@@ -1,4 +1,4 @@
-package io.joj.annotation;
+package io.joj.reflect;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -16,9 +16,9 @@ import com.google.common.collect.Iterables;
  * @author findepi
  * @since Oct 24, 2016
  */
-class MethodReferences {
+public class MethodReferences {
 
-	static <T> Method getMethod(Class<T> clazz, MethodReference<T, ?> methodReference) {
+	public static <T> Method getMethod(Class<T> clazz, MethodReference0<T> methodReference) {
 		checkArgument(clazz.isInterface(), "currently only interface introspection is supported");
 		requireNonNull(methodReference, "methodReference");
 
@@ -32,7 +32,7 @@ class MethodReferences {
 					return Defaults.defaultValue(method.getReturnType());
 				});
 
-		methodReference.invoke(clazz.cast(proxy));
+		methodReference.invokeOn(clazz.cast(proxy));
 
 		checkState(calledMethods.size() == 1, "MethodReference is not actually a method reference");
 		return Iterables.getOnlyElement(calledMethods);
