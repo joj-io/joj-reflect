@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -130,7 +131,8 @@ final class SyntheticAnnotationInvocationHandler<A extends Annotation> implement
 	/**
 	 * Implements {@link Annotation#hashCode()}.
 	 */
-	private int hashCodeImpl() {
+	@VisibleForTesting
+	int hashCodeImpl() {
 		// hash caching just like in String
 		if (hash != 0) {
 			return hash;
@@ -162,19 +164,21 @@ final class SyntheticAnnotationInvocationHandler<A extends Annotation> implement
 		}
 	}
 
-	private boolean equalsImpl(Object proxy, Object other) {
+	@VisibleForTesting
+	boolean equalsImpl(Object proxy, Object other) {
 		if (proxy == other) {
 			return true;
 		}
 		if (!annotationClass.isInstance(other)) {
 			return false;
 		}
-		
+
 		// TODO
 		throw new UnsupportedOperationException("not implemented yet");
 	}
 
-	private String toStringImpl() {
+	@VisibleForTesting
+	String toStringImpl() {
 		String valuesToString = values.entrySet().stream()
 				.sorted(Comparator.comparing(Entry::getKey))
 				.map(entry -> format("%s=%s", entry.getKey(), entry.getValue()))
@@ -183,11 +187,13 @@ final class SyntheticAnnotationInvocationHandler<A extends Annotation> implement
 		return format("@%s(%s)", annotationClass.getName(), valuesToString);
 	}
 
-	private Class<A> annotationTypeImpl() {
+	@VisibleForTesting
+	Class<A> annotationTypeImpl() {
 		return annotationClass;
 	}
 
-	private Object valueFor(Method method) {
+	@VisibleForTesting
+	Object valueFor(Method method) {
 		Object value = values.get(method.getName());
 		checkState(value != null, "No value (not even default) for %s could be found", method);
 		return value;

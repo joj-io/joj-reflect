@@ -8,16 +8,11 @@ import static org.testng.Assert.assertEquals;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.Map;
 
 import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableMap;
-
-import io.joj.reflect.annotation.SyntheticAnnotationInvocationHandler;
 
 /**
  * @author findepi
@@ -54,8 +49,8 @@ public class SyntheticAnnotationInvocationHandlerTest {
 	@Test
 	public void testAnnotationType() {
 		// When
-		InvocationHandler ih = handlerFor(TestAnnotationWithoutAttribtues.class);
-		Class<? extends Annotation> introspectedAnnotationType = proxy(Annotation.class, ih).annotationType();
+		SyntheticAnnotationInvocationHandler<?> ih = newHandler(TestAnnotationWithoutAttribtues.class);
+		Class<? extends Annotation> introspectedAnnotationType = ih.annotationTypeImpl();
 		// Then
 		assertEquals(introspectedAnnotationType, TestAnnotationWithoutAttribtues.class);
 	}
@@ -63,24 +58,24 @@ public class SyntheticAnnotationInvocationHandlerTest {
 	@Test
 	public void testToStringNoAttributes() {
 		// When
-		String value = proxyWithHandlerFor(TestAnnotationWithoutAttribtues.class, emptyMap())
-				.toString();
+		String value = newHandler(TestAnnotationWithoutAttribtues.class, emptyMap())
+				.toStringImpl();
 		// Then
 		assertEquals(value,
-				"@io.joj.annotation.SyntheticAnnotationInvocationHandlerTest$TestAnnotationWithoutAttribtues()");
+				"@io.joj.reflect.annotation.SyntheticAnnotationInvocationHandlerTest$TestAnnotationWithoutAttribtues()");
 	}
 
 	@Test
 	public void testToString() {
 		// When
-		InvocationHandler ih = new SyntheticAnnotationInvocationHandler<>(
+		SyntheticAnnotationInvocationHandler<?> ih = new SyntheticAnnotationInvocationHandler<>(
 				TestAnnotationWith2DefaultsAnd1Mandatory.class,
 				ImmutableMap.of(
 						// "first" is unmapped, using default
 						"second", "second explicit",
 						"third", "third explicit"));
 
-		String value = proxy(Annotation.class, ih).toString();
+		String value = ih.toStringImpl();
 		// Then
 		assertEquals(value, format("@%s(first=%s, second=%s, third=%s)",
 				TestAnnotationWith2DefaultsAnd1Mandatory.class.getName(),
@@ -90,29 +85,29 @@ public class SyntheticAnnotationInvocationHandlerTest {
 	}
 
 	@Test
-	public void testReturnDefaultValue() {
+	public void testReturnDefaultValue() throws Exception {
 		// When
-		String value = proxyWithHandlerFor(TestAnnotationWithDefault.class, emptyMap()).foo();
+		Object value = newHandler(TestAnnotationWithDefault.class, emptyMap())
+				.valueFor(TestAnnotationWithDefault.class.getMethod("foo"));
 		// Then
 		assertEquals(value, TestAnnotationWithDefault.DEFAULT);
 	}
 
 	@Test
-	public void testReturnProvidedValue() {
+	public void testReturnProvidedValue() throws Exception {
 		// When
-		String value = proxyWithHandlerFor(TestAnnotationWithMandatory.class,
+		Object value = newHandler(TestAnnotationWithMandatory.class,
 				singletonMap("mandatoryMethod", "provided test value"))
-						.mandatoryMethod();
+						.valueFor(TestAnnotationWithMandatory.class.getMethod("mandatoryMethod"));
 		// Then
 		assertEquals(value, "provided test value");
 	}
 
 	@Test
-	public void testReturnProvidedValueWhenDefault() {
+	public void testReturnProvidedValueWhenDefault() throws Exception {
 		// When
-		String value = proxyWithHandlerFor(TestAnnotationWithDefault.class,
-				singletonMap("foo", "provided test value for foo"))
-						.foo();
+		Object value = newHandler(TestAnnotationWithDefault.class, singletonMap("foo", "provided test value for foo"))
+				.valueFor(TestAnnotationWithDefault.class.getMethod("foo"));
 		// Then
 		assertEquals(value, "provided test value for foo");
 	}
@@ -120,10 +115,10 @@ public class SyntheticAnnotationInvocationHandlerTest {
 	@Test
 	public void testHashCode() {
 		// When
-		int value = proxyWithHandlerFor(TestAnnotationWith2DefaultsAnd1Mandatory.class, ImmutableMap.of(
+		int value = newHandler(TestAnnotationWith2DefaultsAnd1Mandatory.class, ImmutableMap.of(
 				"second", "second val",
 				"third", "third val"))
-						.hashCode();
+						.hashCodeImpl();
 		// Then
 		@TestAnnotationWith2DefaultsAnd1Mandatory(second = "second val", third = "third val")
 		class Sample {
@@ -141,22 +136,12 @@ public class SyntheticAnnotationInvocationHandlerTest {
 		// Then expect exception
 	}
 
-	private <A extends Annotation> SyntheticAnnotationInvocationHandler<A> handlerFor(Class<A> annotationClass) {
-		return new SyntheticAnnotationInvocationHandler<>(annotationClass, emptyMap());
+	private <A extends Annotation> SyntheticAnnotationInvocationHandler<A> newHandler(Class<A> annotationClass) {
+		return newHandler(annotationClass, emptyMap());
 	}
 
-	/**
-	 * Helper {@link Proxy} for testing {@link InvocationHandler#invoke(Object, Method, Object[])}, because manually and
-	 * correctly providing parameters to that method is not obvious.
-	 */
-	private <A extends Annotation> A proxy(Class<A> interfaceClass, InvocationHandler handler) {
-		Object proxy = Proxy.newProxyInstance(SyntheticAnnotationInvocationHandlerTest.class.getClassLoader(),
-				new Class<?>[] { interfaceClass },
-				handler);
-		return interfaceClass.cast(proxy);
-	}
-
-	private <A extends Annotation> A proxyWithHandlerFor(Class<A> annotationClass, Map<String, ?> values) {
-		return proxy(annotationClass, new SyntheticAnnotationInvocationHandler<>(annotationClass, values));
+	private <A extends Annotation> SyntheticAnnotationInvocationHandler<A> newHandler(Class<A> annotationClass,
+			Map<String, ?> values) {
+		return new SyntheticAnnotationInvocationHandler<>(annotationClass, values);
 	}
 }
