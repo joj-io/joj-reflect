@@ -24,7 +24,7 @@ import io.joj.reflect.MethodReferences;
  * Incidentally, annotations are designed as immutable, type-safe, null-safe (no {@code null}-s), value-based (in terms
  * of {@link Object#hashCode()} and {@link Object#equals(Object)}) data structures. Perfect!... if only we could
  * instantiate them at run-time! And now we can.
- * 
+ *
  * @author findepi
  */
 public class AnnotationBuilder {
@@ -33,7 +33,7 @@ public class AnnotationBuilder {
 
 	/**
 	 * Low level, type-unsafe, annotation synthesizer. Whenever possible, use {@link #builderFor(Class)} instead.
-	 * 
+	 *
 	 * @param annotationClass
 	 *            desired annotation type
 	 * @param values
@@ -56,10 +56,11 @@ public class AnnotationBuilder {
 	 * Example:
 	 *
 	 * <code><pre>
-	 * import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+	 * import javax.validation.constraints.Pattern;
 	 *
-	 * XmlJavaTypeAdapter generated = AnnotationBuilder.builderFor(XmlJavaTypeAdapter.class)
-	 *   .with(XmlJavaTypeAdapter::value).returning(MyAdapter.class)
+	 * Pattern generated = AnnotationBuilder.builderFor(Pattern.class)
+	 *   .with(Pattern::regexp).returning("^a+.*end$")
+	 *   .with(Pattern::message).returning("Value should look funny, begin with 'a' and end with 'end'.")
 	 *   .build();
 	 * </pre></code>
 	 */

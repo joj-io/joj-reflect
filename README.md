@@ -5,10 +5,11 @@
 ### Example
 
 ```java
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
- 
- XmlJavaTypeAdapter generated = AnnotationBuilder.builderFor(XmlJavaTypeAdapter.class)
-   .with(XmlJavaTypeAdapter::value).returning(MyAdapter.class)
+import javax.validation.constraints.Pattern;
+
+ Pattern generated = AnnotationBuilder.builderFor(Pattern.class)
+   .with(Pattern::regexp).returning("^a+.*end$")
+   .with(Pattern::message).returning("Value should look funny, begin with 'a' and end with 'end'.")
    .build();
 ```
 
