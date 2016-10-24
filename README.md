@@ -1,6 +1,8 @@
 # joj-annotation
 
-# AnnotationBuilder: Type-safe annotation builder (synthesizer) for Java 8
+## AnnotationBuilder: Type-safe annotation builder (synthesizer) for Java 8
+
+### Example
 
 ```java
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -10,7 +12,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
    .build();
 ```
 
-## Installation
+### Installation
 
 ```xml
 <dependency>
