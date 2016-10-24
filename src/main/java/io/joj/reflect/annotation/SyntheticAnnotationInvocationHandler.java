@@ -2,7 +2,7 @@ package io.joj.reflect.annotation;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static io.joj.reflect.internal.GuavaCollectors.toImmutableMap;
+import static io.joj.fluence.guava.GuavaCollectors.toImmutableMap;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
