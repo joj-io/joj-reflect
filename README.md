@@ -2,7 +2,7 @@
 
 # AnnotationBuilder: Type-safe annotation builder (synthesizer) for Java 8
 
-```
+```java
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  
  XmlJavaTypeAdapter generated = AnnotationBuilder.builderFor(XmlJavaTypeAdapter.class)
@@ -12,7 +12,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 ## Installation
 
-```
+```xml
 <dependency>
   <groupId>io.joj</groupId>
   <artifactId>joj-reflect</artifactId>
