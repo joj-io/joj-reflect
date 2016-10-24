@@ -50,8 +50,9 @@ public class AnnotationBuilder {
 	}
 
 	/**
-	 * Returns type-safe, reusable (functional) builder for {@code A}. {@code A} instances produced by this builder
-	 * conform to general contract of {@link Annotation}-s.
+	 * Returns type-safe, reusable (functional) builder for {@code A}. Unlike dynamic annotation implementation starring
+	 * here and there, instances produced by this builder conform to general contract of {@link Annotation}-s
+	 * (especially {@link Annotation#hashCode()}, {@link Annotation#equals(Object)}).
 	 * <p>
 	 * Example:
 	 *

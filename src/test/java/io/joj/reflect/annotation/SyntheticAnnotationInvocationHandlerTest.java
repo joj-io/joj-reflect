@@ -4,6 +4,8 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
@@ -113,19 +115,28 @@ public class SyntheticAnnotationInvocationHandlerTest {
 	}
 
 	@Test
-	public void testHashCode() {
+	public void testHashCodeAndEquals() {
 		// When
-		int value = newHandler(TestAnnotationWith2DefaultsAnd1Mandatory.class, ImmutableMap.of(
-				"second", "second val",
-				"third", "third val"))
-						.hashCodeImpl();
+		SyntheticAnnotationInvocationHandler<?> ih = newHandler(TestAnnotationWith2DefaultsAnd1Mandatory.class,
+				ImmutableMap.of(
+						"second", "second val",
+						"third", "third val"));
+
 		// Then
 		@TestAnnotationWith2DefaultsAnd1Mandatory(second = "second val", third = "third val")
-		class Sample {
+		class SameSample {
 		}
 
-		assertEquals(value, Sample.class.getAnnotation(TestAnnotationWith2DefaultsAnd1Mandatory.class).hashCode());
+		@TestAnnotationWith2DefaultsAnd1Mandatory(third = "third different val")
+		class DifferentSample {
+		}
 
+		Object sameButStatic = SameSample.class.getAnnotation(TestAnnotationWith2DefaultsAnd1Mandatory.class);
+		Object differentStatic = DifferentSample.class.getAnnotation(TestAnnotationWith2DefaultsAnd1Mandatory.class);
+
+		assertEquals(ih.hashCodeImpl(), sameButStatic.hashCode());
+		assertTrue(ih.equalsImpl(new Object(), sameButStatic), "should compare equal to sameButStatic");
+		assertFalse(ih.equalsImpl(new Object(), differentStatic), "should compare inequal to differentStatic");
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = ""
