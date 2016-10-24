@@ -15,6 +15,15 @@ import io.joj.reflect.MethodReferences;
 
 /**
  * Main entry point for building synthetic {@link Annotation} instances.
+ * <p>
+ * Usually one does not need to create annotation instances at run-time. Annotations were designed, and are mainly used,
+ * to annotate source code and as such are generally determined at compile time. However, at times, in dark corners of
+ * software, one can face desire, or even urgent need, to make up an annotation instance that is not bound to source
+ * element or, even worse, cannot be determined at compile time. {@link AnnotationBuilder} is here to help!
+ * <p>
+ * Incidentally, annotations are designed as immutable, type-safe, null-safe (no {@code null}-s), value-based (in terms
+ * of {@link Object#hashCode()} and {@link Object#equals(Object)}) data structures. Perfect!... if only we could
+ * instantiate them at run-time! And now we can.
  * 
  * @author findepi
  */
@@ -43,6 +52,16 @@ public class AnnotationBuilder {
 	/**
 	 * Returns type-safe, reusable (functional) builder for {@code A}. {@code A} instances produced by this builder
 	 * conform to general contract of {@link Annotation}-s.
+	 * <p>
+	 * Example:
+	 *
+	 * <code><pre>
+	 * import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+	 *
+	 * XmlJavaTypeAdapter generated = AnnotationBuilder.builderFor(XmlJavaTypeAdapter.class)
+	 *   .with(XmlJavaTypeAdapter::value).returning(MyAdapter.class)
+	 *   .build();
+	 * </pre></code>
 	 */
 	public static <A extends Annotation> Builder<A> builderFor(Class<A> annotationClass) {
 		return new Builder<>(annotationClass);
