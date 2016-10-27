@@ -10,14 +10,22 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<joj.fluence.version>1.0.0-SNAPSHOT</joj.fluence.version>
 	</properties>
 
 	<dependencies>
 
 		<dependency>
 			<groupId>io.joj</groupId>
+			<artifactId>joj-fluence</artifactId>
+			<version>${joj.fluence.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.joj</groupId>
 			<artifactId>joj-fluence-guava</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>${joj.fluence.version}</version>
 		</dependency>
 
 		<dependency>

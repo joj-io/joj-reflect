@@ -20,9 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
@@ -36,35 +33,6 @@ import com.google.common.primitives.Primitives;
  * @author findepi
  */
 final class SyntheticAnnotationInvocationHandler<A extends Annotation> implements InvocationHandler {
-
-	/**
-	 * Annotation's method and bound value.
-	 */
-	private static class BoundValue {
-		private final Method method;
-		private final Object value;
-
-		private final Supplier<Function<Object, Integer>> hashCode;
-		private final Supplier<BiFunction<Object, Object, Boolean>> equality;
-
-		BoundValue(Method method, Object value) {
-			super();
-			this.method = requireNonNull(method, "method");
-			this.value = requireNonNull(value, "value"); // annotation cannot have a null value
-
-			this.hashCode = () -> hashCodeFunction(value.getClass()); // hash is cached, so this doesn't need to be
-			this.equality = Suppliers.memoize(() -> equalityFunction(value.getClass()));
-		}
-
-		Function<Object, Integer> getHashCodeFunction() {
-			return hashCode.get();
-		}
-
-		BiFunction<Object, Object, Boolean> getEqualsFunction() {
-			return equality.get();
-		}
-
-	}
 
 	private static final Method equalsMethod;
 	private static final Method hashCodeMethod;
@@ -84,7 +52,7 @@ final class SyntheticAnnotationInvocationHandler<A extends Annotation> implement
 	}
 
 	private final Class<A> annotationClass;
-	private final ImmutableMap<String, BoundValue> values;
+	private final ImmutableMap<String, AnnotationValue<A>> values;
 
 	private int hash;
 
@@ -125,7 +93,7 @@ final class SyntheticAnnotationInvocationHandler<A extends Annotation> implement
 
 						.collect(toImmutableMap(
 								entry -> entry.getKey().getName(),
-								entry -> new BoundValue(entry.getKey(), entry.getValue())));
+								entry -> new AnnotationValue<A>(entry.getKey(), entry.getValue())));
 
 		// Finally, check all provided values did not contain too many (i.e. unmapped) entries
 		List<String> unmapped = new ArrayList<>(Sets.difference(providedValues.keySet(), this.values.keySet()));
@@ -165,38 +133,34 @@ final class SyntheticAnnotationInvocationHandler<A extends Annotation> implement
 	 */
 	@VisibleForTesting
 	int hashCodeImpl() {
-		// hash caching just like in String
-		if (hash != 0) {
+		if (hash != 0 || values.isEmpty()) {
+			// hash cache; annotation without values has 0 hash code
 			return hash;
 		}
-		hash = values.entrySet().stream()
-				.mapToInt(entry -> (127 * entry.getKey().hashCode()) ^
-						entry.getValue().getHashCodeFunction().apply(entry.getValue().value))
+		hash = values.values().stream()
+				.mapToInt(AnnotationValue::valueHashCode)
 				.sum();
 		return hash;
 	}
 
 	@VisibleForTesting
-	boolean equalsImpl(Object proxy, Object other) {
-		if (proxy == other) {
+	boolean equalsImpl(Object proxy, Object o) {
+		if (proxy == o) {
 			return true;
 		}
-		if (!annotationClass.isInstance(other)) {
+		if (!annotationClass.isInstance(o)) { // including null case
 			return false;
 		}
 
-		boolean valuesEqual = values.entrySet().stream()
+		@SuppressWarnings("unchecked") // already checked
+		A other = (A) o;
+
+		boolean allValuesEqual = values.entrySet().stream()
 				.allMatch(entry -> {
-					try {
-						return entry.getValue().getEqualsFunction().apply(
-								entry.getValue().value,
-								entry.getValue().method.invoke(other));
-					} catch (ReflectiveOperationException e) {
-						throw new RuntimeException(e);
-					}
+					return entry.getValue().isValueEqualIn(other);
 				});
 
-		return valuesEqual;
+		return allValuesEqual;
 	}
 
 	@VisibleForTesting
@@ -220,56 +184,12 @@ final class SyntheticAnnotationInvocationHandler<A extends Annotation> implement
 
 	@VisibleForTesting
 	Object valueFor(Method method) {
-		BoundValue boundValue = values.get(method.getName());
+		AnnotationValue<A> boundValue = values.get(method.getName());
 		checkState(boundValue != null, "No value (not even default) for %s could be found", method);
 		return boundValue.value;
 	}
 
 	private static <K, V> Entry<K, V> entry(K key, V value) {
 		return new AbstractMap.SimpleEntry<>(key, value);
-	}
-
-	private static Function<Object, Integer> hashCodeFunction(Class<?> valueClass) {
-		if (!valueClass.isArray()) {
-			return Object::hashCode;
-
-		} else {
-			Method hashCodeMethod;
-			try {
-				hashCodeMethod = Arrays.class.getMethod("hashCode", valueClass);
-			} catch (ReflectiveOperationException e) {
-				throw new RuntimeException(e);
-			}
-
-			return o -> {
-				try {
-					return (Integer) hashCodeMethod.invoke(null, o);
-				} catch (ReflectiveOperationException e) {
-					throw new RuntimeException(e);
-				}
-			};
-		}
-	}
-
-	private static BiFunction<Object, Object, Boolean> equalityFunction(Class<?> valueClass) {
-		if (!valueClass.isArray()) {
-			return Object::equals;
-
-		} else {
-			Method equalsMethod;
-			try {
-				equalsMethod = Arrays.class.getMethod("equals", valueClass, valueClass);
-			} catch (ReflectiveOperationException e) {
-				throw new RuntimeException(e);
-			}
-
-			return (o1, o2) -> {
-				try {
-					return (Boolean) equalsMethod.invoke(null, o1, o2);
-				} catch (ReflectiveOperationException e) {
-					throw new RuntimeException(e);
-				}
-			};
-		}
 	}
 }

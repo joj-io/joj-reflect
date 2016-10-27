@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableMap;
  */
 public class SyntheticAnnotationInvocationHandlerTest {
 
+	@Retention(RetentionPolicy.RUNTIME)
 	private @interface TestAnnotationWithoutAttribtues {
 	}
 
@@ -112,6 +113,22 @@ public class SyntheticAnnotationInvocationHandlerTest {
 				.valueFor(TestAnnotationWithDefault.class.getMethod("foo"));
 		// Then
 		assertEquals(value, "provided test value for foo");
+	}
+
+	@Test
+	public void testHashCodeAndEqualsNoAttributes() {
+		// When
+		SyntheticAnnotationInvocationHandler<?> ih = newHandler(TestAnnotationWithoutAttribtues.class);
+
+		// Then
+		@TestAnnotationWithoutAttribtues
+		class SameSample {
+		}
+
+		Object sameButStatic = SameSample.class.getAnnotation(TestAnnotationWithoutAttribtues.class);
+
+		assertEquals(ih.hashCodeImpl(), sameButStatic.hashCode());
+		assertTrue(ih.equalsImpl(new Object(), sameButStatic), "should compare equal to sameButStatic");
 	}
 
 	@Test
