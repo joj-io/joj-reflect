@@ -60,8 +60,11 @@ final class SyntheticAnnotationInvocationHandler<A extends Annotation> implement
 
 		this.annotationClass = requireNonNull(annotationClass, "annotationClass");
 
-		// Implicit null-checking. Annotation can never have null values.
-		Map<String, Object> providedValues = ImmutableMap.copyOf(requireNonNull(values, "values"));
+		values.entrySet().forEach(entry -> {
+			if (entry.getValue() == null) {
+				throw new NullPointerException(format("Null value for %s", entry.getKey()));
+			}
+		});
 
 		this.values =
 				// Take all annotation interface methods
@@ -76,7 +79,7 @@ final class SyntheticAnnotationInvocationHandler<A extends Annotation> implement
 								entry.getKey(),
 								// Use provided value or, if no value provided, use the default one
 								Java9.orOptionals(
-										Optional.ofNullable(providedValues.get(entry.getKey().getName())),
+										Optional.ofNullable(values.get(entry.getKey().getName())),
 										entry::getValue)
 						/**/ ))
 
@@ -96,7 +99,7 @@ final class SyntheticAnnotationInvocationHandler<A extends Annotation> implement
 								entry -> new AnnotationValue<A>(entry.getKey(), entry.getValue())));
 
 		// Finally, check all provided values did not contain too many (i.e. unmapped) entries
-		List<String> unmapped = new ArrayList<>(Sets.difference(providedValues.keySet(), this.values.keySet()));
+		List<String> unmapped = new ArrayList<>(Sets.difference(values.keySet(), this.values.keySet()));
 		checkArgument(unmapped.isEmpty(), "Some provided values do not have corresponding method in %s: %s",
 				annotationClass, unmapped);
 	}

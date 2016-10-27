@@ -7,8 +7,6 @@ import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableMap;
 
-import io.joj.reflect.annotation.AnnotationBuilder;
-
 /**
  * @author findepi
  * @since Oct 23, 2016
