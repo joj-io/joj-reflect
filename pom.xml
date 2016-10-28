@@ -3,15 +3,17 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.joj</groupId>
 	<artifactId>joj-reflect</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
-	<name>Annotations for Java (8) on Jetpacks</name>
+	<version>1.0.0</version>
+	<name>${project.artifactId}</name>
+	<description>Annotations for Java (8) on Jetpacks</description>
+	<url>http://joj.io/</url>
 
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<joj.fluence.version>1.0.0-SNAPSHOT</joj.fluence.version>
+		<joj.fluence.version>1.0.1</joj.fluence.version>
 	</properties>
 
 	<dependencies>
@@ -49,4 +51,81 @@
 		</dependency>
 
 	</dependencies>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.2.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.9.1</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.5</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<licenses>
+		<license>
+			<name>The Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>findepi</name>
+			<url>https://github.com/findepi</url>
+		</developer>
+	</developers>
+
+	<scm>
+		<connection>scm:git:https://github.com/joj-io/joj-reflect.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com:joj-io/joj-reflect.git</developerConnection>
+		<url>https://github.com/joj-io/joj-reflect</url>
+	</scm>
+
 </project>

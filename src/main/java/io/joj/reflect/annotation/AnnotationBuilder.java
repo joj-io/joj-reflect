@@ -56,14 +56,14 @@ public class AnnotationBuilder {
 	 * <p>
 	 * Example:
 	 *
-	 * <code><pre>
+	 * <pre><code>
 	 * import javax.validation.constraints.Pattern;
 	 *
 	 * Pattern generated = AnnotationBuilder.builderFor(Pattern.class)
 	 *   .with(Pattern::regexp).returning("^a+.*end$")
 	 *   .with(Pattern::message).returning("Value should look funny, begin with 'a' and end with 'end'.")
 	 *   .build();
-	 * </pre></code>
+	 * </code></pre>
 	 */
 	public static <A extends Annotation> Builder<A> builderFor(Class<A> annotationClass) {
 		return new Builder<>(annotationClass);
