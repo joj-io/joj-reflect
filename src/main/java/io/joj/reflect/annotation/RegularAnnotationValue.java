@@ -1,10 +1,10 @@
 package io.joj.reflect.annotation;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import static io.joj.reflect.annotation.internal.Check.checkArgument;
 
 import java.lang.reflect.Method;
 
-import com.google.common.primitives.Primitives;
+import io.joj.reflect.annotation.internal.Primitive;
 
 /**
  * @author findepi
@@ -21,7 +21,8 @@ class RegularAnnotationValue extends AnnotationValue {
 	}
 
 	private static Object checkValue(Method getter, Object value) {
-		Class<?> expectedType = Primitives.wrap(getter.getReturnType());
+		Class<?> expectedType = Primitive.primitiveToWrapper
+				.getOrDefault(getter.getReturnType(), getter.getReturnType());
 		return checkValue(expectedType, value);
 	}
 

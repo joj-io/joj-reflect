@@ -1,6 +1,6 @@
 package io.joj.reflect.annotation;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import static io.joj.reflect.annotation.internal.Check.checkArgument;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;

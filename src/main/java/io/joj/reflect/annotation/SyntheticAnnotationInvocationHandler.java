@@ -1,8 +1,7 @@
 package io.joj.reflect.annotation;
 
-import static com.google.common.base.Preconditions.checkState;
+import static io.joj.reflect.annotation.internal.Check.checkState;
 import static java.lang.String.format;
-import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 
@@ -18,9 +17,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Iterables;
 
 /**
  * {@link InvocationHandler} implementing an {@link Annotation}.
@@ -111,7 +107,7 @@ final class SyntheticAnnotationInvocationHandler<A extends Annotation> implement
 			return hashCodeImpl();
 		}
 		if (equalsMethod.equals(method)) {
-			return equalsImpl(proxy, Iterables.getOnlyElement(asList(args)));
+			return equalsImpl(proxy, args[0]);
 		}
 		if (toStringMethod.equals(method)) {
 			return toStringImpl();
@@ -133,7 +129,6 @@ final class SyntheticAnnotationInvocationHandler<A extends Annotation> implement
 	/**
 	 * Implements {@link Annotation#hashCode()}.
 	 */
-	@VisibleForTesting
 	int hashCodeImpl() {
 		if (hash != 0 || values.isEmpty()) {
 			// hash cache; annotation without values has 0 hash code
@@ -145,7 +140,6 @@ final class SyntheticAnnotationInvocationHandler<A extends Annotation> implement
 		return hash;
 	}
 
-	@VisibleForTesting
 	boolean equalsImpl(Object proxy, Object o) {
 		if (proxy == o) {
 			return true;
@@ -165,7 +159,6 @@ final class SyntheticAnnotationInvocationHandler<A extends Annotation> implement
 		return allValuesEqual;
 	}
 
-	@VisibleForTesting
 	String toStringImpl() {
 		String valuesToString = values.entrySet().stream()
 				// Sort to have deterministic toString(). Useful at least for tests, if not for humans.
@@ -179,12 +172,10 @@ final class SyntheticAnnotationInvocationHandler<A extends Annotation> implement
 		return format("@%s(%s)", annotationClass.getName(), valuesToString);
 	}
 
-	@VisibleForTesting
 	Class<A> annotationTypeImpl() {
 		return annotationClass;
 	}
 
-	@VisibleForTesting
 	Object valueFor(Method method) {
 		AnnotationValue boundValue = values.get(method.getName());
 		if (boundValue != null) {

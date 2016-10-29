@@ -1,7 +1,7 @@
 package io.joj.reflect;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
+import static io.joj.reflect.annotation.internal.Check.checkArgument;
+import static io.joj.reflect.annotation.internal.Check.checkState;
 import static java.util.Objects.requireNonNull;
 
 import java.lang.reflect.Method;
@@ -9,8 +9,7 @@ import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.base.Defaults;
-import com.google.common.collect.Iterables;
+import io.joj.reflect.annotation.internal.Primitive;
 
 /**
  * @author findepi
@@ -29,13 +28,13 @@ public class MethodReferences {
 				new Class<?>[] { clazz },
 				(p, method, args) -> {
 					calledMethods.add(method);
-					return Defaults.defaultValue(method.getReturnType());
+					return Primitive.primitiveToDefault.get(method.getReturnType());
 				});
 
 		methodReference.invokeOn(clazz.cast(proxy));
 
 		checkState(calledMethods.size() == 1, "MethodReference is not actually a method reference");
-		return Iterables.getOnlyElement(calledMethods);
+		return calledMethods.get(0);
 	}
 
 }
