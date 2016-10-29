@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -48,14 +47,17 @@ final class SyntheticAnnotationInvocationHandler<A extends Annotation> implement
 	}
 
 	private final Class<A> annotationClass;
+	private final SyntheticAnnotationCompleteness completeness;
 	// immutable
 	private final Map<String, AnnotationValue> values;
 
 	private int hash;
 
-	public SyntheticAnnotationInvocationHandler(Class<A> annotationClass, Map<String, ?> values) {
+	public SyntheticAnnotationInvocationHandler(Class<A> annotationClass, Map<String, ?> values,
+			SyntheticAnnotationCompleteness completeness) {
 
 		this.annotationClass = requireNonNull(annotationClass, "annotationClass");
+		this.completeness = requireNonNull(completeness, "completeness");
 
 		values.entrySet().forEach(entry -> {
 			if (entry.getValue() == null) {
@@ -71,11 +73,19 @@ final class SyntheticAnnotationInvocationHandler<A extends Annotation> implement
 
 			Object effectiveValue;
 			if (values.containsKey(annotationGetter.getName())) {
+				// explicit value
 				effectiveValue = requireNonNull(values.get(annotationGetter.getName()),
 						() -> format("null value for %s", annotationGetter));
+			} else if (annotationGetter.getDefaultValue() != null) {
+				// default value
+				effectiveValue = annotationGetter.getDefaultValue();
 			} else {
-				effectiveValue = Optional.ofNullable(annotationGetter.getDefaultValue())
-						.orElseThrow(() -> new IllegalStateException(format("no value for %s", annotationGetter)));
+				// no value
+				if (completeness == SyntheticAnnotationCompleteness.REQUIRE_COMPLETE) {
+					throw new IllegalArgumentException(format("no value for %s", annotationGetter));
+				} else {
+					continue;
+				}
 			}
 
 			effectiveValues.put(annotationGetter.getName(),
@@ -176,8 +186,12 @@ final class SyntheticAnnotationInvocationHandler<A extends Annotation> implement
 
 	@VisibleForTesting
 	Object valueFor(Method method) {
-		AnnotationValue boundValue = requireNonNull(values.get(method.getName()), "values.get(method.getName())");
-		return boundValue.getValue();
+		AnnotationValue boundValue = values.get(method.getName());
+		if (boundValue != null) {
+			return boundValue.getValue();
+		} else {
+			return completeness.valueWhenMissing();
+		}
 	}
 
 	private static <K, V> Entry<K, V> entry(K key, V value) {

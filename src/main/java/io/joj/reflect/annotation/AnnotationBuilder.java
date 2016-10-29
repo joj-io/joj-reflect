@@ -1,5 +1,6 @@
 package io.joj.reflect.annotation;
 
+import static io.joj.reflect.annotation.SyntheticAnnotationCompleteness.REQUIRE_COMPLETE;
 import static java.util.Objects.requireNonNull;
 
 import java.lang.annotation.Annotation;
@@ -32,19 +33,44 @@ public class AnnotationBuilder {
 	}
 
 	/**
-	 * Low level, type-unsafe, annotation synthesizer. Whenever possible, use {@link #builderFor(Class)} instead.
+	 * Low level, type-unsafe, annotation synthesizer taking target annotation type and values. Whenever possible, use
+	 * {@link #builderFor(Class)} instead.
 	 *
 	 * @param annotationClass
 	 *            desired annotation type
 	 * @param values
 	 *            map from annotation method name to value
-	 * @return synthesized annotation
+	 * @return synthesized annotation that is complete and correct implementation of {@code annotationClass}
 	 */
 	public static <A extends Annotation> A buildFromMap(Class<A> annotationClass, Map<String, ?> values) {
+		return buildFromMap(annotationClass, values, REQUIRE_COMPLETE);
+	}
+
+	/**
+	 * Low level, type-unsafe, annotation synthesizer taking target annotation type and values, which allows for
+	 * optional incomplete implementation. Incomplete implementation is an implementation that does not have a value for
+	 * at least one annotation method that has no default. Incomplete implementation does not satisfy general contract
+	 * for {@link Annotation#hashCode()} nor {@link Annotation#equals(Object)}.
+	 * <p>
+	 * Whenever possible, use {@link #builderFor(Class)} instead.
+	 *
+	 * @param annotationClass
+	 *            desired annotation type
+	 * @param values
+	 *            map from annotation method name to value
+	 * @param completeness
+	 *            expected annotation completeness
+	 * @return synthesized annotation. When {@code completeness} is
+	 *         {@link SyntheticAnnotationCompleteness#REQUIRE_COMPLETE}, the returned annotation is complete and correct
+	 *         implementation of {@code annotationClass}.
+	 */
+	public static <A extends Annotation> A buildFromMap(Class<A> annotationClass, Map<String, ?> values,
+			SyntheticAnnotationCompleteness completeness) {
+
 		Object syntheticAnnotation = Proxy.newProxyInstance(
 				Thread.currentThread().getContextClassLoader(),
 				new Class<?>[] { annotationClass },
-				new SyntheticAnnotationInvocationHandler<A>(annotationClass, values));
+				new SyntheticAnnotationInvocationHandler<A>(annotationClass, values, completeness));
 
 		return annotationClass.cast(syntheticAnnotation);
 	}
@@ -56,14 +82,16 @@ public class AnnotationBuilder {
 	 * <p>
 	 * Example:
 	 *
-	 * <pre><code>
+	 * <pre>
+	 * <code>
 	 * import javax.validation.constraints.Pattern;
 	 *
 	 * Pattern generated = AnnotationBuilder.builderFor(Pattern.class)
 	 *   .with(Pattern::regexp).returning("^a+.*end$")
 	 *   .with(Pattern::message).returning("Value should look funny, begin with 'a' and end with 'end'.")
 	 *   .build();
-	 * </code></pre>
+	 * </code>
+	 * </pre>
 	 */
 	public static <A extends Annotation> Builder<A> builderFor(Class<A> annotationClass) {
 		return new Builder<>(annotationClass);
@@ -72,14 +100,16 @@ public class AnnotationBuilder {
 	public static final class Builder<A extends Annotation> {
 		private final Class<A> clazz;
 		private final PMap<String, Object> values;
+		private final SyntheticAnnotationCompleteness completeness;
 
 		private Builder(Class<A> clazz) {
-			this(clazz, HashPMap.empty(IntTreePMap.empty()));
+			this(clazz, HashPMap.empty(IntTreePMap.empty()), REQUIRE_COMPLETE);
 		}
 
-		private Builder(Class<A> clazz, PMap<String, Object> values) {
+		private Builder(Class<A> clazz, PMap<String, Object> values, SyntheticAnnotationCompleteness completeness) {
 			this.clazz = requireNonNull(clazz, "clazz");
 			this.values = requireNonNull(values, "values");
+			this.completeness = requireNonNull(completeness, "completeness");
 		}
 
 		public <R> OngoingMethodSpec<R> with(MethodReference0<A> methodReference) {
@@ -87,19 +117,23 @@ public class AnnotationBuilder {
 			return new OngoingMethodSpec<>(specedMethodName);
 		}
 
+		public Builder<A> completeness(SyntheticAnnotationCompleteness completeness) {
+			return new Builder<>(clazz, values, completeness);
+		}
+
 		public A build() {
-			return buildFromMap(clazz, values);
+			return buildFromMap(clazz, values, completeness);
 		}
 
 		public final class OngoingMethodSpec<R> {
 			private final String specedMethodName;
 
-			public OngoingMethodSpec(String specedMethodName) {
+			private OngoingMethodSpec(String specedMethodName) {
 				this.specedMethodName = requireNonNull(specedMethodName, "specedMethodName");
 			}
 
 			public Builder<A> returning(R value) {
-				return new Builder<>(clazz, values.plus(specedMethodName, value));
+				return new Builder<>(clazz, values.plus(specedMethodName, value), completeness);
 			}
 		}
 	}

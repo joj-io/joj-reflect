@@ -1,5 +1,6 @@
 package io.joj.reflect.annotation;
 
+import static io.joj.reflect.annotation.SyntheticAnnotationCompleteness.REQUIRE_COMPLETE;
 import static java.lang.String.format;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
@@ -76,7 +77,8 @@ public class SyntheticAnnotationInvocationHandlerTest {
 				ImmutableMap.of(
 						// "first" is unmapped, using default
 						"second", "second explicit",
-						"third", "third explicit"));
+						"third", "third explicit"),
+				REQUIRE_COMPLETE);
 
 		String value = ih.toStringImpl();
 		// Then
@@ -160,7 +162,8 @@ public class SyntheticAnnotationInvocationHandlerTest {
 			+ ".*no.* corresponding method in interface \\S*TestAnnotationWithDefault: \\[extramethod\\]")
 	public void testRejectUnmappedValue() {
 		// When
-		new SyntheticAnnotationInvocationHandler<>(TestAnnotationWithDefault.class, singletonMap("extramethod", ""));
+		new SyntheticAnnotationInvocationHandler<>(TestAnnotationWithDefault.class, singletonMap("extramethod", ""),
+				REQUIRE_COMPLETE);
 		// Then expect exception
 	}
 
@@ -170,6 +173,6 @@ public class SyntheticAnnotationInvocationHandlerTest {
 
 	private <A extends Annotation> SyntheticAnnotationInvocationHandler<A> newHandler(Class<A> annotationClass,
 			Map<String, ?> values) {
-		return new SyntheticAnnotationInvocationHandler<>(annotationClass, values);
+		return new SyntheticAnnotationInvocationHandler<>(annotationClass, values, REQUIRE_COMPLETE);
 	}
 }
