@@ -19,6 +19,6 @@ import javax.validation.constraints.Pattern;
 <dependency>
   <groupId>io.joj</groupId>
   <artifactId>joj-reflect</artifactId>
-  <version>1.1.0</version>
+  <version>1.1.1</version>
 </dependency>
 ```
