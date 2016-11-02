@@ -17,6 +17,10 @@ import io.joj.reflect.annotation.internal.Primitive;
  */
 public class MethodReferences {
 
+	public static Method introspect(MethodReference0<?, ?> methodReference) {
+
+	}
+
 	public static <T> Method getMethod(Class<T> clazz, MethodReference0<T, ?> methodReference) {
 		checkArgument(clazz.isInterface(), "currently only interface introspection is supported");
 		requireNonNull(methodReference, "methodReference");
