@@ -112,7 +112,7 @@ public class AnnotationBuilder {
 			this.completeness = requireNonNull(completeness, "completeness");
 		}
 
-		public <R> OngoingMethodSpec<R> with(MethodReference0<A> methodReference) {
+		public <R> OngoingMethodSpec<R> with(MethodReference0<A, R> methodReference) {
 			String specedMethodName = MethodReferences.getMethod(clazz, methodReference).getName();
 			return new OngoingMethodSpec<>(specedMethodName);
 		}

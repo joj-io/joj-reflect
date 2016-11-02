@@ -3,6 +3,8 @@ package io.joj.reflect;
 import static org.testng.Assert.assertEquals;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.testng.annotations.Test;
 
@@ -16,7 +18,7 @@ public class MethodReferencesTest {
 	public void getMethodFromInterfaceMethodReference() throws Exception {
 		// Given
 		@SuppressWarnings("rawtypes")
-		MethodReference0<Iterable> ref = Iterable::iterator;
+		MethodReference0<Iterable, Iterator<?>> ref = Iterable::iterator;
 		// When
 		Method method = MethodReferences.getMethod(Iterable.class, ref);
 		// Then
